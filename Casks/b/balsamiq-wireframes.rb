@@ -9,7 +9,16 @@ cask "balsamiq-wireframes" do
 
   livecheck do
     url "https://builds.balsamiq.com/bwd/mac.jsonp"
-    regex(/"version"\s*:\s*"(\d+(?:\.\d+)+)"/i)
+    regex(/callback\((.+?)\);/i)
+    strategy :page_match do |page, regex|
+      match = page.match(regex)
+      next if match.blank?
+
+      json_string = match[1]
+
+      json = Homebrew::Livecheck::Strategy::Json.parse_json(json_string)
+      json["version"]
+    end
   end
 
   depends_on macos: ">= :catalina"
