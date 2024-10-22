@@ -11,7 +11,16 @@ cask "trader-workstation" do
 
   livecheck do
     url "https://download2.interactivebrokers.com/installers/tws/latest/version.json"
-    regex(/(\d+(?:\.\d+)+[a-z]*)/i)
+    regex(/callback\((.+?)\);/i)
+    strategy :page_match do |page, regex|
+      match = page.match(regex)
+      next if match.blank?
+
+      json_string = match[1]
+
+      json = Homebrew::Livecheck::Strategy::Json.parse_json(json_string)
+      json["buildVersion"]
+    end
   end
 
   installer script: {
